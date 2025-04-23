@@ -80,6 +80,252 @@ To set up the environment for running the notebook, please follow these steps:
    ```
    which should output `True` if a CUDA-enabled GPU is accessible.
 
+## Abstractive Summarization:
+
+1. **Defining a Custom Dataset and DataModule for BART Fine-Tuning**:
+   ```python
+   import pytorch_lightning as pl
+
+   class Dataset(torch.utils.data.Dataset):
+    """Class used as a dataset loader with defined overridden methods as required by
+    #pytorch DataLoader.
+    
+    For more information about Dataset, Dataloader read:
+    
+    https://pytorch.org/tutorials/beginner/data_loading_tutorial.html
+    """
+
+    def __init__(self, texts, summaries, tokenizer, source_len, summ_len):
+        self.texts = texts
+        self.summaries = summaries
+        self.tokenizer = tokenizer
+        self.source_len  = source_len
+        self.summ_len = summ_len
+
+    def __len__(self):
+        return len(self.summaries) - 1
+
+    def __getitem__(self, index):
+        text = ' '.join(str(self.texts[index]).split())
+        summary = ' '.join(str(self.summaries[index]).split())
+
+        # Article text pre-processing
+        source = self.tokenizer.batch_encode_plus([text],
+                                                  max_length=self.source_len,
+                                                  pad_to_max_length=True,
+                                                  return_tensors='pt')
+        # Summary target pre-processing
+        target = self.tokenizer.batch_encode_plus([summary],
+                                                  max_length=self.summ_len,
+                                                  pad_to_max_length=True,
+                                                  return_tensors='pt')
+
+        return (
+            source['input_ids'].squeeze(), 
+            source['attention_mask'].squeeze(), 
+            target['input_ids'].squeeze(),
+            target['attention_mask'].squeeze()
+        )
+
+   class BARTDataLoader(pl.LightningDataModule):
+    #Pytorch Lightning DataModule for BART fine-tuning.
+    
+    def __init__(self, tokenizer, text_len, summarized_len, file_path,
+                 corpus_size, columns_name, train_split_size, batch_size):
+        super().__init__()
+        self.tokenizer = tokenizer
+        self.text_len = text_len
+        self.summarized_len = summarized_len
+        self.input_text_length = summarized_len
+        self.file_path = file_path
+        self.nrows = corpus_size
+        self.columns = columns_name
+        self.train_split_size = train_split_size
+        self.batch_size = batch_size
+
+    def prepare_data(self):
+        data = pd.read_csv(self.file_path, nrows=self.nrows, encoding='latin-1')
+        data = data[self.columns]
+        data.iloc[:, 1] = 'summarize: ' + data.iloc[:, 1]
+        self.text = list(data.iloc[:, 0].values)
+        self.summary = list(data.iloc[:, 1].values)
+
+    def setup(self, stage=None):
+        X_train, y_train, X_val, y_val = train_test_split(
+            self.text, self.summary
+        )
+        self.train_dataset = (X_train, y_train) 
+        self.val_dataset = (X_val, y_val)
+
+    def train_dataloader(self):
+        train_data = Dataset(texts=self.train_dataset[0],
+                             summaries=self.train_dataset[1],
+                             tokenizer=self.tokenizer,
+                             source_len=self.text_len,
+                             summ_len=self.summarized_len)
+        return DataLoader(train_data, self.batch_size)
+
+    def val_dataloader(self):
+        val_dataset = Dataset(texts=self.val_dataset[0],
+                              summaries=self.val_dataset[1],
+                              tokenizer=self.tokenizer,
+                              source_len=self.text_len,
+                              summ_len=self.summarized_len)
+        return DataLoader(val_dataset, self.batch_size)
+   ```
+  - After this cell, we have defined the data handling components: a dataset class to tokenize data on-the-fly, and a LightningDataModule (BARTDataLoader) that will manage reading a CSV and providing train/val DataLoaders.
+
+  - Output: This cell defines classes and has no direct output if everything is correct. (No print statements here.) If something were wrong (like missing imports), we’d see errors, but assuming all is well, it runs silently.
+
+2. **Defining the LightningModule for BART Fine-Tuning**:
+  ```python
+  class AbstractiveSummarizationBARTFineTuning(pl.LightningModule):
+    """Abstractive summarization model class"""
+
+    def __init__(self, model, tokenizer):
+        super().__init__()
+        self.model = model
+        self.tokenizer = tokenizer
+        self.training_losses = []
+        self.validation_losses = []
+
+    def forward(self, input_ids, attention_mask, decoder_input_ids,
+                decoder_attention_mask=None, lm_labels=None):
+        """Model forward pass"""
+        outputs = self.model(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            decoder_input_ids=decoder_input_ids,
+            labels=decoder_input_ids  # You’re using labels=decoder_input_ids
+        )
+        return outputs
+
+    def preprocess_batch(self, batch):
+        """Reformatting batch"""
+        input_ids, source_attention_mask, decoder_input_ids, decoder_attention_mask = batch
+        y = decoder_input_ids
+        return input_ids, source_attention_mask, decoder_input_ids, decoder_attention_mask, y
+
+    def training_step(self, batch, batch_idx):
+        input_ids, source_attention_mask, decoder_input_ids, decoder_attention_mask, lm_labels = self.preprocess_batch(batch)
+        outputs = self.forward(input_ids, source_attention_mask, decoder_input_ids, decoder_attention_mask, lm_labels)
+        loss = outputs.loss
+        self.training_losses.append(loss.detach())  # Store for epoch summary
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        input_ids, source_attention_mask, decoder_input_ids, decoder_attention_mask, lm_labels = self.preprocess_batch(batch)
+        outputs = self.forward(input_ids, source_attention_mask, decoder_input_ids, decoder_attention_mask, lm_labels)
+        loss = outputs.loss
+        self.validation_losses.append(loss.detach())  # Store for epoch summary
+        return loss
+
+    def on_train_epoch_end(self):
+        avg_loss = torch.stack(self.training_losses).mean()
+        self.log('epoch', self.current_epoch)
+        self.log('avg_epoch_loss', avg_loss, prog_bar=True)
+        self.training_losses.clear()
+
+    def on_validation_epoch_end(self):
+        avg_loss = torch.stack(self.validation_losses).mean()
+        self.log('val_avg_epoch_loss', avg_loss, prog_bar=True)
+        self.validation_losses.clear()
+
+    def configure_optimizers(self):
+        return AdamW(self.model.parameters())
+  ```
+  - Output: Defining the class produces no immediate output. If there were mistakes in the code, we’d see errors. Otherwise, it’s silent.
+
+  - Now we have a LightningModule that knows how to take our tokenized batches, feed them to BART, compute the loss, and how to optimize the model.
+
+
+3. **Initializing the Pre-trained BART Model and DataModule**:
+   ```python
+   # Tokenizer
+   # Upload the curated_data_subset.csv if using colab or change the path to local file
+   from transformers import BartForConditionalGeneration, BartTokenizer
+
+   model_ = BartForConditionalGeneration.from_pretrained("facebook/bart-base")
+   tokenizer = BartTokenizer.from_pretrained("facebook/bart-base")
+
+   # Dataloader
+   dataloader = BARTDataLoader(tokenizer=tokenizer, text_len=512,
+                            summarized_len=150,
+                            file_path='curated_data_subset.csv',
+                            corpus_size=50, columns_name=['article_content','summary'],
+                            train_split_size=0.8, batch_size=2)
+   # Read and pre-process data
+   dataloader.prepare_data()
+
+   # Train-test Split
+   dataloader.setup()
+   ```
+   - Output: There is no direct print output in this cell. However, behind the scenes, from_pretrained might output something:
+
+      - It could print a message about downloading the model if it’s not cached. If already cached, it might be silent.
+
+      - In our recorded run, there’s no explicit output shown for these lines, which suggests the model and tokenizer loaded without issues or verbose messages.
+
+      - The DataLoader methods don’t print anything either. So this cell likely produces no user-visible output.
+
+4. **Setting up the Trainer and Starting Fine-Tuning**:
+   ```python
+   from torch.utils.data import DataLoader
+
+   trainer = pl.Trainer(
+      check_val_every_n_epoch=1,
+      max_epochs=5,
+      accelerator="gpu",
+      devices=1
+   )
+
+   # Fit model
+   trainer.fit(model, dataloader)
+   ```
+  - Sets up a PyTorch Lightning Trainer and begins fine-tuning the model on the small dataset for 5 epochs.
+
+5. **Defining a Summarization Function Using a Pre-trained Model**:
+   ```python
+   import torch
+   from transformers import BartTokenizer, BartForConditionalGeneration
+
+   def summarize_article(article, model_name='facebook/bart-large-cnn', max_input_len=1024, max_output_len=150):
+    # Load model and tokenizer only once if you use this function repeatedly
+    tokenizer = BartTokenizer.from_pretrained(model_name)
+    model = BartForConditionalGeneration.from_pretrained(model_name)
+
+    # Move model to GPU if available
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
+
+    # Tokenize and encode the article
+    inputs = tokenizer.encode(article, return_tensors='pt', max_length=max_input_len, truncation=True).to(device)
+
+    # Generate summary
+    summary_ids = model.generate(
+        inputs,
+        num_beams=4,
+        max_length=max_output_len,
+        early_stopping=True
+    )
+
+    # Decode and return the summary
+    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+    return summary
+
+   # Example usage
+   article = """
+    My friends are cool but they eat too many carbs.
+   """
+
+   summary = summarize_article(article)
+   print("Summary:")
+   print(summary)
+   ```
+   - This is the summary produced by the model for the toy article. It’s somewhat repetitive and not very practical (the input sentence itself was a bit trivial). The model tried to make a coherent paragraph out of it, somewhat humorously repeating the idea.
+   - This shows the model can generate text; however, with such a simple input, it essentially paraphrased and added content. (The BART-large model was trained on news, so given a single statement it created a pseudo-explanatory paragraph that sounds like an opinion.)
+   - The key point is: the function works and we got a “summary” (albeit not a shorter one in this case, because the input was so short already).
+
 ## Usage
 
 1. **Get the Files:**
