@@ -24,15 +24,21 @@ We use **BART** – a powerful Transformer model with a BERT-like encoder and GP
 
 ## Features
 
-- **State-of-the-Art Model:** Utilizes Facebook's BART, a transformer-based encoder-decoder model known for its strong performance on summarization tasks ([facebook/bart-large-cnn · Hugging Face](https://huggingface.co/facebook/bart-large-cnn#:~:text=BART%20is%20particularly%20effective%20when,summary%20pairs)). The notebook uses the `facebook/bart-base` checkpoint and demonstrates how to fine-tune it for abstractive summarization.
-- **Abstractive Summarization:** Generates novel summaries by paraphrasing the source text, rather than simply extracting sentences. This results in more coherent and natural summaries that capture the essence of the original text ([20 Applications Of Automatic Summarization In The Enterprise | Frase](https://www.frase.io/blog/20-applications-of-automatic-summarization-in-the-enterprise/#:~:text=,important%20sentence%20in%20the%20article)).
-- **Curated Dataset Included:** The repository includes two curated CSV datasets:
-  - `curated_data_subset.csv` – A subset of articles and summaries (used for quick fine-tuning and demonstration, e.g., 50 samples for fast training). 
-  - `curation-corpus-base.csv` – The full corpus of articles and summaries for more extensive training and evaluation.
-- **Jupyter Notebook Pipeline:** The provided notebook walks through the entire pipeline: data loading & preprocessing, model setup, training (fine-tuning) process using PyTorch Lightning, and inference to generate summaries. Each step is well-documented in markdown cells for clarity.
-- **Custom Data Loader and Training Loop:** Implements a data loading mechanism that reads the CSV, prepares input text and target summaries, and splits data into training/validation sets. The training loop (leveraging PyTorch Lightning) handles model training with support for GPU acceleration.
-- **Inference Example:** After fine-tuning, the notebook demonstrates how to generate summaries for new input texts. Users can easily plug in their own documents to summarize using the fine-tuned model or even use the pre-trained model without fine-tuning for a baseline.
-- **Extensibility:** The code is modular. You can adjust parameters such as maximum input length (`text_len`), summary length (`summarized_len`), or replace the dataset with your own. This makes it easy to adapt the notebook for different domains or larger datasets.
+- **Powerful Model:** This project uses Facebook's BART model (`facebook/bart-base`), which is one of the top models for summarizing text. The notebook shows how to fine-tune it for creating high-quality summaries.
+
+- **Paraphrased Summaries (Abstractive):** Instead of just picking sentences from the original text, the model rewrites the content in its own words. This makes the summaries more natural and easier to read.
+
+- **Ready-to-Use Datasets:** Two CSV datasets are included:
+  - `curated_data_subset.csv` – A small sample (about 50 articles) to quickly test and train the model.
+  - `curation-corpus-base.csv` – A full set of article-summary pairs for deeper training and better results.
+
+- **Step-by-Step Notebook:** The Jupyter Notebook explains everything clearly — from loading data, setting up the model, training with PyTorch Lightning, to generating summaries.
+
+- **Custom Data Loader & Training Loop:** It includes a custom way to load and split your data for training and testing. The training process supports GPU for faster performance.
+
+- **Try Your Own Texts:** After training, you can use the model to summarize your own documents. You can also test the pre-trained model without any extra training.
+
+- **Easy to Modify:** You can tweak settings like input length, summary length, or use your own dataset. The code is modular and easy to adapt for different projects.
 
 ## Installation
 
