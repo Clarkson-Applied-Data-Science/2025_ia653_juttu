@@ -85,7 +85,7 @@ To set up the environment for running the notebook, please follow these steps:
 1. **Get the Files:**
    - Download or clone this project from GitHub:
      ```bash
-     git clone [https://github.com/Clarkson-Applied-Data-Science/2025_ia653_juttu.git]
+     git clone https://github.com/Clarkson-Applied-Data-Science/2025_ia653_juttu.git]\
      cd 2025_ia653_juttu
      ```
    - Make sure the two data files (`curated_data_subset.csv` and `curation-corpus-base.csv`) are in the same folder as the notebook. They come included.
