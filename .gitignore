@@ -172,3 +172,5 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+Notebook/curated_data_subset.csv
+Notebook/curation-corpus-base.csv
