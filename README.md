@@ -82,27 +82,53 @@ To set up the environment for running the notebook, please follow these steps:
 
 ## Usage
 
-Follow these instructions to run the summarization notebook and generate outputs:
+1. **Get the Files:**
+   - Download or clone this project from GitHub:
+     ```bash
+     git clone [https://github.com/Clarkson-Applied-Data-Science/2025_ia653_juttu.git]
+     cd 2025_ia653_juttu
+     ```
+   - Make sure the two data files (`curated_data_subset.csv` and `curation-corpus-base.csv`) are in the same folder as the notebook. They come included.
 
-1. **Clone the Repository:** Download or clone this GitHub repository to your local machine:
-   ```bash
-   git clone https://github.com/YourUsername/YourRepoName.git
-   cd YourRepoName
-   ```
-   Ensure that the CSV data files (`curated_data_subset.csv` and `curation-corpus-base.csv`) are present in the repository directory (they are included in this repo).
-2. **Launch Jupyter Notebook:** Start the Jupyter Notebook server and open the `Bart.ipynb` file:
-   ```bash
-   jupyter notebook Bart.ipynb
-   ```
-   *Alternatively, use Jupyter Lab or open the notebook in an environment like Google Colab (upload the notebook and data files if using Colab).* 
-3. **Load and Preprocess Data:** Run the initial cells of the notebook to load the dataset. By default, the notebook uses `curated_data_subset.csv` for a quick demonstration. It will read the CSV and prepare the text and summary pairs for training. (You may adjust the file path or use `curation-corpus-base.csv` if you want to train on the full dataset, keeping in mind this will require more time and resources).
-4. **Configure the Model:** The notebook initializes the BART model and tokenizer from Hugging Face's Transformers library (default is `facebook/bart-base`). It then sets up the PyTorch Lightning data module (`BARTDataLoader`) to handle batching and truncation/padding of sequences to the desired length (`text_len=512` for input texts and `summarized_len=150` for summaries by default).
-5. **Train the Model:** Execute the training section in the notebook. The notebook uses PyTorch Lightning to train the BART model on the dataset. By default, it will perform a few epochs on the subset of data (e.g., 50 samples) for demonstration. If a GPU is available, the training process will automatically utilize it (which is recommended for speed). During training, you will see logs describing the training progress and loss. *Note:* If using the full dataset, ensure you have sufficient GPU memory and time for training, or reduce the `batch_size` and number of epochs accordingly.
-6. **Generate Summaries (Inference):** After training, or even without additional fine-tuning, you can use the model to generate summaries on new text:
-   - The notebook provides a function (e.g., `summarize_article(article_text)`) that encodes an input document and uses `model.generate()` to produce a summary. 
-   - To try it out, insert your own text or use one of the examples in the notebook. Run the inference cell to obtain the summary.
-7. **Review the Output:** The generated summary will be displayed. You can compare it with the original text or the reference summary (if available) to evaluate its quality. The notebook may include examples of model output for qualitative assessment.
-8. **Experiment:** Feel free to experiment by adjusting parameters (e.g., try different `num_beams` for beam search in generation, or change `max_length` for the summary). You can also load the larger dataset or even plug in a different pre-trained model (such as `facebook/bart-large-cnn` for a model already fine-tuned on news data) to see how the results differ. 
+2. **Open the Notebook:**
+   - Start Jupyter Notebook and open `Bart.ipynb`:
+     ```bash
+     jupyter notebook Bart.ipynb
+     ```
+   - You can also use **Jupyter Lab** or **Google Colab** (upload the notebook and CSV files if using Colab).
+
+3. **Load the Data:**
+   - Run the first few cells to load the data.
+   - By default, it uses `curated_data_subset.csv` (a small sample for fast testing).
+   - You can switch to `curation-corpus-base.csv` for full training (this takes more time and needs more memory).
+
+4. **Set Up the Model:**
+   - The notebook loads Facebook’s BART model (`facebook/bart-base`) using Hugging Face Transformers.
+   - It prepares the text data and sets default lengths:
+     - Input text: 512 tokens
+     - Summary: 150 tokens
+
+5. **Train the Model:**
+   - Run the training section to fine-tune BART on the dataset.
+   - It uses **PyTorch Lightning** for easy training.
+   - If you have a GPU, it will use it automatically.
+   - If you're using the full dataset, lower the `batch_size` or `epochs` if you run into memory issues.
+
+6. **Generate Summaries:**
+   - You can test the model on new text using a helper function like `summarize_article()`.
+   - Paste in your own article or use the sample ones in the notebook.
+   - The model will return a short summary.
+
+7. **Check the Output:**
+   - Look at the summary and compare it with the original.
+   - You’ll see how well the model captured the main idea.
+
+8. **Try New Settings:**
+   - Want different results? Change parameters like:
+     - `num_beams` (for beam search quality)
+     - `max_length` (for longer/shorter summaries)
+   - You can also try other models like `facebook/bart-large-cnn`.
+
 
 ## Input/Output Examples
 
