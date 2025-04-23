@@ -10,6 +10,22 @@ We use **BART** – a powerful Transformer model with a BERT-like encoder and GP
 
 ![BART](https://github.com/user-attachments/assets/c1e2da6a-d926-4354-b85a-045277d471e7)
 
+## Instructions
+
+    Clone this repository
+
+git clone git@github.com:CurationCorp/curation-corpus.git && cd curation-corpus
+
+    Download the article titles, summaries, urls, and dates
+
+wget https://curation-datasets.s3-eu-west-1.amazonaws.com/curation-corpus-base.csv
+
+    Download the article content
+
+python web_scraper.py [FILE_WITHOUT_ARTICLE_CONTENT] [FILE_WITH_ARTICLE_CONTENT]
+
+Some urls will return messy results due to content changing over time, paywalls, etc. We've tried to remove the worst offenders from this release. There is probably still scope though for improving the scraper though.
+
 
 
 ## Features
