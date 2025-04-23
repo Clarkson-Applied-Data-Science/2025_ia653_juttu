@@ -1,7 +1,3 @@
-Great, I’ll prepare a professional README file following IEEE standards. It will describe your BART-based text summarization project, intended for researchers and professionals. It will include purpose, installation instructions, usage with provided datasets, output examples, and proper citation formatting.
-
-I’ll get back to you shortly with a draft you can review.
-
 # Abstractive Text Summarization using BART
 
 ## Project Overview
