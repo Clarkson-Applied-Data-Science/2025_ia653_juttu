@@ -185,6 +185,4 @@ These results indicate robust performance in capturing the content of the input 
    - You can also try other models like `facebook/bart-large-cnn`.
 
 
-These results indicate robust performance in capturing the content of the input text (as reflected by the ROUGE scores) and generating fluent, high-precision summaries (as reflected by the BLEU score). Overall, the evaluation scores show that the BART-based system produces high-quality summaries comparable to current benchmarks, confirming its effectiveness and reliability.
-
 
