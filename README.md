@@ -100,7 +100,7 @@ To set up the environment for running the notebook, please follow these steps:
 
 These examples illustrate how the system takes an input document and produces a clear, concise summary that captures the essential information.
   
-Results
+## Results
 
 The summarization system has been evaluated on the CNN/DailyMail test set using standard metrics. The performance demonstrates the model’s strong summarization capability:
 
