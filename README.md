@@ -31,13 +31,13 @@ We use **BART** – a powerful Transformer model with a BERT-like encoder and GP
 
 
 * **Tree Based**:
-![Untitled](https://github.com/user-attachments/assets/3f14dc4f-0a02-43fd-8933-155e203a0705)
+  ![Untitled](https://github.com/user-attachments/assets/3f14dc4f-0a02-43fd-8933-155e203a0705)
 
 * **Template Based**:
-![Untitled](https://github.com/user-attachments/assets/a879e833-64ac-42f8-beca-63f535f87092)
+  ![Untitled](https://github.com/user-attachments/assets/a879e833-64ac-42f8-beca-63f535f87092)
 
 * **Graph Based**:
-![Untitled](https://github.com/user-attachments/assets/9082b6e0-4a21-4992-8b34-28d6ca105a47)
+  ![Untitled](https://github.com/user-attachments/assets/9082b6e0-4a21-4992-8b34-28d6ca105a47)
 
 
 
